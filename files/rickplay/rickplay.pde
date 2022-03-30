@@ -16,11 +16,10 @@ int v_h = 30;
 int margin_x = 0;
 int margin_y = 00;
 
-PImage canvas = createImage(v_w, v_h, ALPHA);
+//PImage canvas = createImage(v_w, v_h, ALPHA);
 
 void settings() {
   size(w, h);
-  frameRate(25);
 }
 
 void setup() {
@@ -28,12 +27,13 @@ void setup() {
   
   scale_x = w/v_w;
   scale_y = h/v_h;
+  frameRate(25);
   
   print("Length of video: ", data.length * 8 / 30 / 40, " frames. (Doesn't have to be right...)");
 }
 
 
-/*
+/* // This method uses a PImage that gets scaled later, not very effective for performance, and also applies filtering which is bad
 void draw(){
   canvas.loadPixels();
   for (int x=0; x<v_w; x++) {
@@ -67,7 +67,7 @@ void draw(){
 */
 
 
-
+// this method is just looping over all pixels, not very elegant too, but hey =)
 void draw(){
   loadPixels();
   for (int x=0; x<w; x++) {
@@ -76,7 +76,7 @@ void draw(){
       int real_y = floor(y / scale_y);
 
       //int current_pixel = frame * v_w * v_h + pixel;
-      int current_pixel = (frame * v_w * v_h) + (v_h*real_x + real_y); // i dont know why its not v_w*real_y + real_x, but it works =)
+      int current_pixel = (frame * v_w * v_h) + (v_w*real_y + real_x); // i dont know why its not v_w*real_y + real_x, but it works =)
       //println(v_w*real_y + real_x, real_x, real_y);
       byte used_byte = data[current_pixel / 8];
       //println(current_pixel, used_byte);
@@ -90,16 +90,6 @@ void draw(){
       } else {
         pixels[x + margin_x + (y + margin_y)*width] = color(0);
       }
-
-      //println(white, pixel);
-      /*
-      if ((real_x * real_y) % scale 
-       pixel ++;
-       if (pixel >= w*h) {
-       pixel = 0;
-       frame ++;
-       }
-       */
        
     }
   }
@@ -112,5 +102,3 @@ void draw(){
     print("RESET");
   }
 }
-
-*/
