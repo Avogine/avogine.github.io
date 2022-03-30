@@ -3,14 +3,32 @@ import processing.video.*;
 Movie movie;
 PrintWriter output;
 
+String movie_path = "rick_low_v2.mp4";
+String output_path = "rick_1bit_v3.bin";
+
+int size_x = 40;
+int size_y = 30;
+int scale = 1;
+int fps = 25; // setting this over the video fps will just do normal speed video, but faster
+float length_sec = 0; 
+
+byte[] to_write = {};
+String bytes_to_convert = "";
 float threshold = .5;
 
+boolean exit = false;
+
+void settings() {
+  size(size_x*scale, size_y*scale);
+}
+
 void setup() {
-  movie = new Movie(this, "rick_low.mp4");
+  movie = new Movie(this, movie_path);
+  movie.frameRate(fps);
+  frameRate(fps);
   movie.play();
   
-  output = createWriter("rick_1bit.txt");
-  output.print("int[][][] video = {");
+  length_sec = movie.duration();
 }
 
 void movieEvent(Movie movie) {
@@ -18,39 +36,47 @@ void movieEvent(Movie movie) {
 }
 
 void draw() {
+  if (exit || movie.time() > length_sec) {
+    print(to_write[243]);
+    saveBytes(output_path, to_write);
+    exit();
+  }
   
   image(movie, 0, 0);
   
-  output.print("{");
-  for (int x=0; x<40; x++)
-  {
-    output.print("{");
-    for (int y=0; y<30; y++)
-    {
-      float value = brightness(get(x, y)) / 255;
+  for (int y=0; y<30; y++) {
+    for (int x=0; x<40; x++) {
+      float value = 1 - brightness(get(x, y)) / 255; // all values 255 means black, all 0 white -> 1-x
+      
       boolean white = false;
       
-      if (value > threshold)
-      {
-        white = true;
-        set(x, y, color(255, 255, 255));
-        output.print("1");
-      } else {
+      if (value < threshold) {
         white = false;
-        set(x, y, color(0, 0, 0));
-        output.print("0");
+      } else {
+        white = true;
       }
       
-      output.print(",");
+      set(x, y, color((1-int(white))*255));
       
+      bytes_to_convert += str(int(!white));
+      
+      if (bytes_to_convert.length() >= 8) {
+        println(byte(unbinary(bytes_to_convert)));
+        to_write = append(to_write, byte(unbinary(bytes_to_convert)));
+        bytes_to_convert = "";
+      }
     }
-    output.print("}");
   }
-  output.print("}");
 }
 
 void keyPressed() {
-  output.flush();  // Writes the remaining data to the file
-  output.close();  // Finishes the file
-  exit();  // Stops the program
+  if (key == ENTER) {
+    exit = true;
+  }
+}
+
+void stop() {
+  print(to_write[243]);
+  saveBytes(output_path, to_write);
+  exit();
 }
